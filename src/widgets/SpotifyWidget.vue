@@ -104,6 +104,45 @@
           <span class="track-album" :title="currentTrack.album">{{ currentTrack.album }}</span>
         </div>
 
+        <!-- Playback Controls -->
+        <div class="playback-controls">
+          <button @click="handlePrevious" class="control-btn" :disabled="controlsLoading" title="Previous">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+            </svg>
+          </button>
+          <button
+            v-if="currentTrack.isPlaying"
+            @click="handlePause"
+            class="control-btn play-pause"
+            :disabled="controlsLoading"
+            title="Pause"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" rx="1"/>
+              <rect x="14" y="4" width="4" height="16" rx="1"/>
+            </svg>
+          </button>
+          <button
+            v-else
+            @click="handlePlay"
+            class="control-btn play-pause"
+            :disabled="controlsLoading"
+            title="Play"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          <button @click="handleNext" class="control-btn" :disabled="controlsLoading" title="Next">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="controlsError" class="controls-error">{{ controlsError }}</div>
+
         <div class="progress-bar">
           <div class="progress" :style="{ width: progressPercent + '%' }"></div>
         </div>
@@ -144,7 +183,11 @@ import {
   generateAuthUrl,
   exchangeCodeForToken,
   refreshAccessToken,
-  getCurrentlyPlaying
+  getCurrentlyPlaying,
+  playTrack,
+  pauseTrack,
+  nextTrack,
+  previousTrack
 } from '../services/spotify.js'
 
 const props = defineProps({
@@ -166,6 +209,8 @@ const isAuthenticated = ref(false)
 const authError = ref(null)
 const loading = ref(false)
 const currentTrack = ref(null)
+const controlsLoading = ref(false)
+const controlsError = ref(null)
 
 let pollInterval = null
 let authCheckInterval = null
@@ -304,6 +349,113 @@ const fetchCurrentlyPlaying = async () => {
 const startPolling = () => {
   fetchCurrentlyPlaying()
   pollInterval = setInterval(fetchCurrentlyPlaying, 3000)
+}
+
+const getValidToken = async () => {
+  let token = getStoredToken()
+  const credentials = getStoredCredentials()
+
+  if (!token || !credentials) {
+    isAuthenticated.value = false
+    return null
+  }
+
+  if (Date.now() >= token.expiresAt && token.refreshToken) {
+    try {
+      const newTokenData = await refreshAccessToken(
+        token.refreshToken,
+        credentials.clientId,
+        credentials.clientSecret
+      )
+      token = saveToken(newTokenData)
+    } catch {
+      isAuthenticated.value = false
+      authError.value = 'Session expired. Please re-authorize.'
+      return null
+    }
+  }
+
+  return token
+}
+
+const handlePlay = async () => {
+  controlsError.value = null
+  controlsLoading.value = true
+  try {
+    const token = await getValidToken()
+    if (!token) return
+    await playTrack(token.accessToken)
+    setTimeout(fetchCurrentlyPlaying, 300)
+  } catch (err) {
+    if (err.message === 'NO_ACTIVE_DEVICE') {
+      controlsError.value = 'No active device'
+    } else {
+      controlsError.value = 'Failed to play'
+    }
+    setTimeout(() => { controlsError.value = null }, 3000)
+  } finally {
+    controlsLoading.value = false
+  }
+}
+
+const handlePause = async () => {
+  controlsError.value = null
+  controlsLoading.value = true
+  try {
+    const token = await getValidToken()
+    if (!token) return
+    await pauseTrack(token.accessToken)
+    setTimeout(fetchCurrentlyPlaying, 300)
+  } catch (err) {
+    if (err.message === 'NO_ACTIVE_DEVICE') {
+      controlsError.value = 'No active device'
+    } else {
+      controlsError.value = 'Failed to pause'
+    }
+    setTimeout(() => { controlsError.value = null }, 3000)
+  } finally {
+    controlsLoading.value = false
+  }
+}
+
+const handleNext = async () => {
+  controlsError.value = null
+  controlsLoading.value = true
+  try {
+    const token = await getValidToken()
+    if (!token) return
+    await nextTrack(token.accessToken)
+    setTimeout(fetchCurrentlyPlaying, 300)
+  } catch (err) {
+    if (err.message === 'NO_ACTIVE_DEVICE') {
+      controlsError.value = 'No active device'
+    } else {
+      controlsError.value = 'Failed to skip'
+    }
+    setTimeout(() => { controlsError.value = null }, 3000)
+  } finally {
+    controlsLoading.value = false
+  }
+}
+
+const handlePrevious = async () => {
+  controlsError.value = null
+  controlsLoading.value = true
+  try {
+    const token = await getValidToken()
+    if (!token) return
+    await previousTrack(token.accessToken)
+    setTimeout(fetchCurrentlyPlaying, 300)
+  } catch (err) {
+    if (err.message === 'NO_ACTIVE_DEVICE') {
+      controlsError.value = 'No active device'
+    } else {
+      controlsError.value = 'Failed to go back'
+    }
+    setTimeout(() => { controlsError.value = null }, 3000)
+  } finally {
+    controlsLoading.value = false
+  }
 }
 
 const stopPolling = () => {
@@ -638,6 +790,56 @@ h3 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #b3b3b3;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+
+.control-btn:hover:not(:disabled) {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-btn.play-pause {
+  width: 40px;
+  height: 40px;
+  background-color: #fff;
+  color: #000;
+}
+
+.control-btn.play-pause:hover:not(:disabled) {
+  background-color: #1DB954;
+  transform: scale(1.05);
+}
+
+.controls-error {
+  font-size: 0.625rem;
+  color: #ff6b6b;
+  margin-top: 4px;
+  text-align: center;
 }
 
 .progress-bar {

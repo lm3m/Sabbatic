@@ -53,7 +53,8 @@ export const saveToken = (tokenData) => {
 export const generateAuthUrl = (clientId, redirectUri) => {
   const scopes = [
     'user-read-currently-playing',
-    'user-read-playback-state'
+    'user-read-playback-state',
+    'user-modify-playback-state'
   ]
 
   const params = new URLSearchParams({
@@ -153,4 +154,104 @@ export const getPlaybackState = async (accessToken) => {
   }
 
   return response.json()
+}
+
+export const playTrack = async (accessToken) => {
+  const response = await fetch(`${SPOTIFY_API_URL}/me/player/play`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  })
+
+  if (response.status === 204 || response.status === 202) {
+    return true
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      throw new Error('NO_ACTIVE_DEVICE')
+    }
+    throw new Error('Failed to play')
+  }
+
+  return true
+}
+
+export const pauseTrack = async (accessToken) => {
+  const response = await fetch(`${SPOTIFY_API_URL}/me/player/pause`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  })
+
+  if (response.status === 204 || response.status === 202) {
+    return true
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      throw new Error('NO_ACTIVE_DEVICE')
+    }
+    throw new Error('Failed to pause')
+  }
+
+  return true
+}
+
+export const nextTrack = async (accessToken) => {
+  const response = await fetch(`${SPOTIFY_API_URL}/me/player/next`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  })
+
+  if (response.status === 204 || response.status === 202) {
+    return true
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      throw new Error('NO_ACTIVE_DEVICE')
+    }
+    throw new Error('Failed to skip to next')
+  }
+
+  return true
+}
+
+export const previousTrack = async (accessToken) => {
+  const response = await fetch(`${SPOTIFY_API_URL}/me/player/previous`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  })
+
+  if (response.status === 204 || response.status === 202) {
+    return true
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      throw new Error('NO_ACTIVE_DEVICE')
+    }
+    throw new Error('Failed to skip to previous')
+  }
+
+  return true
 }
