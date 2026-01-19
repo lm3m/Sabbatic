@@ -99,9 +99,9 @@
         </div>
 
         <div class="track-details">
-          <span class="track-name">{{ currentTrack.name }}</span>
-          <span class="track-artist">{{ currentTrack.artist }}</span>
-          <span class="track-album">{{ currentTrack.album }}</span>
+          <span class="track-name" :title="currentTrack.name">{{ currentTrack.name }}</span>
+          <span class="track-artist" :title="currentTrack.artist">{{ currentTrack.artist }}</span>
+          <span class="track-album" :title="currentTrack.album">{{ currentTrack.album }}</span>
         </div>
 
         <div class="progress-bar">
@@ -276,11 +276,16 @@ const fetchCurrentlyPlaying = async () => {
     const data = await getCurrentlyPlaying(token.accessToken)
 
     if (data && data.item) {
+      // Get highest resolution image (images are sorted by size descending)
+      // First image is largest (typically 640x640), last is smallest (typically 64x64)
+      const images = data.item.album.images || []
+      const highestResImage = images.length > 0 ? images[0].url : ''
+
       currentTrack.value = {
         name: data.item.name,
         artist: data.item.artists.map(a => a.name).join(', '),
         album: data.item.album.name,
-        albumArt: data.item.album.images[0]?.url || '',
+        albumArt: highestResImage,
         duration: data.item.duration_ms,
         progress: data.progress_ms,
         isPlaying: data.is_playing
@@ -534,11 +539,12 @@ h3 {
 
 .album-art {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: min(50%, 200px);
+  aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
 }
 
 .album-art img {
@@ -596,40 +602,46 @@ h3 {
   align-items: center;
   gap: 4px;
   text-align: center;
-  max-width: 100%;
+  width: 100%;
+  padding: 0 8px;
 }
 
 .track-name {
   font-size: 0.875rem;
   font-weight: 600;
   color: #e0e0e0;
-  white-space: nowrap;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
 }
 
 .track-artist {
   font-size: 0.75rem;
   color: #aaa;
-  white-space: nowrap;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
 }
 
 .track-album {
   font-size: 0.625rem;
   color: #666;
-  white-space: nowrap;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  white-space: nowrap;
 }
 
 .progress-bar {
   width: 100%;
-  max-width: 200px;
   height: 4px;
   background-color: #333;
   border-radius: 2px;
@@ -648,7 +660,6 @@ h3 {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  max-width: 200px;
   font-size: 0.625rem;
   color: #666;
 }
