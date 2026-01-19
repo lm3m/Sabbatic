@@ -7,6 +7,7 @@
         <button @click="addWidget('image')" class="add-btn">+ Image</button>
         <button @click="addWidget('data')" class="add-btn">+ Data</button>
         <button @click="addWidget('iframe')" class="add-btn">+ Embed</button>
+        <button @click="addWidget('spotify')" class="add-btn spotify-btn">+ Spotify</button>
         <button @click="resetLayout" class="reset-btn">Reset Layout</button>
       </div>
     </header>
@@ -177,6 +178,8 @@ const getDefaultConfig = (type) => {
       return {
         url: 'https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik'
       }
+    case 'spotify':
+      return {}
     default:
       return {}
   }
@@ -249,6 +252,15 @@ const resetLayout = () => {
 
 .add-btn:hover {
   background-color: #1557b0;
+}
+
+.spotify-btn {
+  background-color: #1DB954;
+  color: #000;
+}
+
+.spotify-btn:hover {
+  background-color: #1ed760;
 }
 
 .reset-btn {

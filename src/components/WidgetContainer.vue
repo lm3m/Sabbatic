@@ -35,6 +35,11 @@
         v-else-if="widget.type === 'iframe'"
         :config="widget.config"
       />
+      <SpotifyWidget
+        v-else-if="widget.type === 'spotify'"
+        :config="widget.config"
+        :refresh-key="widget.refreshKey"
+      />
       <div v-else class="widget-placeholder">
         Unknown widget type
       </div>
@@ -47,6 +52,7 @@ import ChartWidget from '../widgets/ChartWidget.vue'
 import ImageWidget from '../widgets/ImageWidget.vue'
 import DataWidget from '../widgets/DataWidget.vue'
 import IframeWidget from '../widgets/IframeWidget.vue'
+import SpotifyWidget from '../widgets/SpotifyWidget.vue'
 
 defineProps({
   widget: {
