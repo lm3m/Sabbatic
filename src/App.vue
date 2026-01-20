@@ -8,6 +8,8 @@
         <button @click="addWidget('data')" class="add-btn">+ Data</button>
         <button @click="addWidget('iframe')" class="add-btn">+ Embed</button>
         <button @click="addWidget('spotify')" class="add-btn spotify-btn">+ Spotify</button>
+        <button @click="addWidget('datetime')" class="add-btn datetime-btn">+ Clock</button>
+        <button @click="addWidget('oblique')" class="add-btn oblique-btn">+ Oblique</button>
         <button @click="resetLayout" class="reset-btn">Reset Layout</button>
       </div>
     </header>
@@ -40,6 +42,7 @@
             :widget="item"
             @remove="removeWidget(item.i)"
             @refresh="refreshWidget(item.i)"
+            @update-settings="(settings) => updateWidgetSettings(item.i, settings)"
           />
         </grid-item>
       </grid-layout>
@@ -180,6 +183,21 @@ const getDefaultConfig = (type) => {
       }
     case 'spotify':
       return {}
+    case 'datetime':
+      return {
+        use24Hour: false,
+        blinkColon: true,
+        displayColor: '#33ff77'
+      }
+    case 'oblique':
+      return {
+        fontFamily: 'Georgia, serif',
+        fontColor: '#e0e0e0',
+        fontSize: '1.125rem',
+        fontBold: false,
+        fontItalic: true,
+        fontUppercase: false
+      }
     default:
       return {}
   }
@@ -197,6 +215,16 @@ const refreshWidget = (id) => {
   const widget = layout.value.find(item => item.i === id)
   if (widget) {
     widget.refreshKey = Date.now()
+  }
+}
+
+const updateWidgetSettings = (id, settings) => {
+  const widget = layout.value.find(item => item.i === id)
+  if (widget) {
+    widget.title = settings.title
+    widget.config = { ...widget.config, ...settings.config }
+    widget.refreshKey = Date.now()
+    saveLayout()
   }
 }
 
@@ -261,6 +289,26 @@ const resetLayout = () => {
 
 .spotify-btn:hover {
   background-color: #1ed760;
+}
+
+.datetime-btn {
+  background-color: #1a3a1a;
+  color: #33ff77;
+  border: 1px solid #33ff77;
+}
+
+.datetime-btn:hover {
+  background-color: #2a4a2a;
+}
+
+.oblique-btn {
+  background-color: #2a2a3a;
+  color: #aabbff;
+  border: 1px solid #4455aa;
+}
+
+.oblique-btn:hover {
+  background-color: #3a3a4a;
 }
 
 .reset-btn {

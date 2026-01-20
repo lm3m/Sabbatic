@@ -3,6 +3,12 @@
     <div class="widget-header">
       <span class="widget-title">{{ widget.title }}</span>
       <div class="widget-actions">
+        <button @click="showSettings = true" class="action-btn" title="Settings">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
         <button @click="$emit('refresh')" class="action-btn" title="Refresh">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
@@ -40,19 +46,43 @@
         :config="widget.config"
         :refresh-key="widget.refreshKey"
       />
+      <DateTimeWidget
+        v-else-if="widget.type === 'datetime'"
+        :config="widget.config"
+        :refresh-key="widget.refreshKey"
+      />
+      <ObliqueStrategiesWidget
+        v-else-if="widget.type === 'oblique'"
+        :config="widget.config"
+        :refresh-key="widget.refreshKey"
+      />
       <div v-else class="widget-placeholder">
         Unknown widget type
       </div>
     </div>
+
+    <!-- Settings Modal -->
+    <Teleport to="body">
+      <WidgetSettings
+        v-if="showSettings"
+        :widget="widget"
+        @close="showSettings = false"
+        @save="handleSaveSettings"
+      />
+    </Teleport>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import ChartWidget from '../widgets/ChartWidget.vue'
 import ImageWidget from '../widgets/ImageWidget.vue'
 import DataWidget from '../widgets/DataWidget.vue'
 import IframeWidget from '../widgets/IframeWidget.vue'
 import SpotifyWidget from '../widgets/SpotifyWidget.vue'
+import DateTimeWidget from '../widgets/DateTimeWidget.vue'
+import ObliqueStrategiesWidget from '../widgets/ObliqueStrategiesWidget.vue'
+import WidgetSettings from './WidgetSettings.vue'
 
 defineProps({
   widget: {
@@ -61,7 +91,14 @@ defineProps({
   }
 })
 
-defineEmits(['remove', 'refresh'])
+const emit = defineEmits(['remove', 'refresh', 'update-settings'])
+
+const showSettings = ref(false)
+
+const handleSaveSettings = (settings) => {
+  emit('update-settings', settings)
+  showSettings.value = false
+}
 </script>
 
 <style scoped>
