@@ -184,4 +184,36 @@ const handleSaveSettings = (settings) => {
   color: #666;
   font-size: 0.875rem;
 }
+
+/* Mobile styles */
+@media (max-width: 767px) {
+  .widget-header {
+    padding: 8px 10px;
+    cursor: default;
+  }
+
+  .widget-title {
+    font-size: 0.8rem;
+  }
+
+  .action-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .widget-content {
+    padding: 8px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .widget-header {
+    padding: 8px 10px;
+  }
+
+  .widget-content {
+    padding: 10px;
+  }
+}
 </style>

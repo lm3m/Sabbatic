@@ -150,6 +150,21 @@
           <span>{{ formatTime(currentTrack.progress) }}</span>
           <span>{{ formatTime(currentTrack.duration) }}</span>
         </div>
+
+        <!-- Queue -->
+        <div v-if="queueTracks.length > 0" class="queue-section">
+          <div class="queue-header">Up Next</div>
+          <div class="queue-list">
+            <div v-for="(track, index) in queueTracks" :key="index" class="queue-item">
+              <img :src="track.albumArt" :alt="track.name" class="queue-album-art" />
+              <div class="queue-track-info">
+                <span class="queue-track-name" :title="track.name">{{ track.name }}</span>
+                <span class="queue-track-artist" :title="track.artist">{{ track.artist }}</span>
+              </div>
+              <span class="queue-track-duration">{{ formatTime(track.duration) }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div v-else class="not-playing">
@@ -187,7 +202,8 @@ import {
   playTrack,
   pauseTrack,
   nextTrack,
-  previousTrack
+  previousTrack,
+  getQueue
 } from '../services/spotify.js'
 
 const props = defineProps({
@@ -209,11 +225,16 @@ const isAuthenticated = ref(false)
 const authError = ref(null)
 const loading = ref(false)
 const currentTrack = ref(null)
+const queueTracks = ref([])
 const controlsLoading = ref(false)
 const controlsError = ref(null)
 
 let pollInterval = null
 let authCheckInterval = null
+let tokenRefreshTimeout = null
+
+// Refresh token 5 minutes before it expires
+const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000
 
 const progressPercent = computed(() => {
   if (!currentTrack.value) return 0
@@ -287,6 +308,7 @@ const resetCredentials = () => {
   hasCredentials.value = false
   isAuthenticated.value = false
   currentTrack.value = null
+  queueTracks.value = []
   clientId.value = ''
   clientSecret.value = ''
   stopPolling()
@@ -335,8 +357,26 @@ const fetchCurrentlyPlaying = async () => {
         progress: data.progress_ms,
         isPlaying: data.is_playing
       }
+
+      // Fetch queue
+      try {
+        const queueData = await getQueue(token.accessToken)
+        if (queueData && queueData.queue) {
+          queueTracks.value = queueData.queue.slice(0, 10).map(track => ({
+            name: track.name,
+            artist: track.artists.map(a => a.name).join(', '),
+            albumArt: track.album.images.length > 0 ? track.album.images[track.album.images.length - 1].url : '',
+            duration: track.duration_ms
+          }))
+        } else {
+          queueTracks.value = []
+        }
+      } catch {
+        queueTracks.value = []
+      }
     } else {
       currentTrack.value = null
+      queueTracks.value = []
     }
   } catch (err) {
     if (err.message === 'TOKEN_EXPIRED') {
@@ -346,9 +386,40 @@ const fetchCurrentlyPlaying = async () => {
   }
 }
 
+const scheduleTokenRefresh = () => {
+  if (tokenRefreshTimeout) {
+    clearTimeout(tokenRefreshTimeout)
+    tokenRefreshTimeout = null
+  }
+
+  const token = getStoredToken()
+  const credentials = getStoredCredentials()
+
+  if (!token || !credentials || !token.refreshToken) return
+
+  const timeUntilExpiry = token.expiresAt - Date.now()
+  const refreshIn = Math.max(0, timeUntilExpiry - TOKEN_REFRESH_BUFFER_MS)
+
+  tokenRefreshTimeout = setTimeout(async () => {
+    try {
+      const newTokenData = await refreshAccessToken(
+        token.refreshToken,
+        credentials.clientId,
+        credentials.clientSecret
+      )
+      saveToken(newTokenData)
+      scheduleTokenRefresh()
+    } catch {
+      isAuthenticated.value = false
+      authError.value = 'Session expired. Please re-authorize.'
+    }
+  }, refreshIn)
+}
+
 const startPolling = () => {
   fetchCurrentlyPlaying()
   pollInterval = setInterval(fetchCurrentlyPlaying, 3000)
+  scheduleTokenRefresh()
 }
 
 const getValidToken = async () => {
@@ -462,6 +533,10 @@ const stopPolling = () => {
   if (pollInterval) {
     clearInterval(pollInterval)
     pollInterval = null
+  }
+  if (tokenRefreshTimeout) {
+    clearTimeout(tokenRefreshTimeout)
+    tokenRefreshTimeout = null
   }
 }
 
@@ -899,5 +974,81 @@ h3 {
 .settings-btn:hover {
   background-color: #333;
   color: #ccc;
+}
+
+/* Queue styles */
+.queue-section {
+  width: 100%;
+  margin-top: 12px;
+  border-top: 1px solid #333;
+  padding-top: 8px;
+}
+
+.queue-header {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.queue-list {
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+}
+
+.queue-item:hover {
+  background-color: #2a2a2a;
+}
+
+.queue-album-art {
+  width: 32px;
+  height: 32px;
+  border-radius: 2px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.queue-track-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.queue-track-name {
+  font-size: 0.75rem;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-track-artist {
+  font-size: 0.625rem;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-track-duration {
+  font-size: 0.625rem;
+  color: #666;
+  flex-shrink: 0;
 }
 </style>

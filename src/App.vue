@@ -2,28 +2,35 @@
   <div class="dashboard">
     <header class="dashboard-header">
       <h1>Widget Dashboard</h1>
-      <div class="header-actions">
-        <button @click="addWidget('chart')" class="add-btn">+ Chart</button>
-        <button @click="addWidget('image')" class="add-btn">+ Image</button>
-        <button @click="addWidget('data')" class="add-btn">+ Data</button>
-        <button @click="addWidget('iframe')" class="add-btn">+ Embed</button>
-        <button @click="addWidget('spotify')" class="add-btn spotify-btn">+ Spotify</button>
-        <button @click="addWidget('datetime')" class="add-btn datetime-btn">+ Clock</button>
-        <button @click="addWidget('oblique')" class="add-btn oblique-btn">+ Oblique</button>
-        <button @click="resetLayout" class="reset-btn">Reset Layout</button>
+      <button class="menu-toggle" @click="showMobileMenu = !showMobileMenu" v-if="isMobile">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="header-actions" :class="{ 'mobile-menu': isMobile, 'show': showMobileMenu }">
+        <button @click="addWidget('chart'); showMobileMenu = false" class="add-btn">+ Chart</button>
+        <button @click="addWidget('image'); showMobileMenu = false" class="add-btn">+ Image</button>
+        <button @click="addWidget('data'); showMobileMenu = false" class="add-btn">+ Data</button>
+        <button @click="addWidget('iframe'); showMobileMenu = false" class="add-btn">+ Embed</button>
+        <button @click="addWidget('spotify'); showMobileMenu = false" class="add-btn spotify-btn">+ Spotify</button>
+        <button @click="addWidget('datetime'); showMobileMenu = false" class="add-btn datetime-btn">+ Clock</button>
+        <button @click="addWidget('oblique'); showMobileMenu = false" class="add-btn oblique-btn">+ Oblique</button>
+        <button @click="resetLayout(); showMobileMenu = false" class="reset-btn">Reset Layout</button>
       </div>
     </header>
 
     <main class="dashboard-content">
       <grid-layout
         v-model:layout="layout"
-        :col-num="12"
-        :row-height="30"
-        :is-draggable="true"
-        :is-resizable="true"
+        :col-num="colNum"
+        :row-height="rowHeight"
+        :is-draggable="!isMobile"
+        :is-resizable="!isMobile"
         :vertical-compact="true"
         :use-css-transforms="true"
-        :margin="[16, 16]"
+        :margin="gridMargin"
       >
         <grid-item
           v-for="item in layout"
@@ -51,9 +58,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { GridLayout, GridItem } from 'grid-layout-plus'
 import WidgetContainer from './components/WidgetContainer.vue'
+
+const windowWidth = ref(window.innerWidth)
+const isMobile = computed(() => windowWidth.value < 768)
+const isTablet = computed(() => windowWidth.value >= 768 && windowWidth.value < 1024)
+
+const colNum = computed(() => {
+  if (isMobile.value) return 2
+  if (isTablet.value) return 6
+  return 12
+})
+
+const rowHeight = computed(() => {
+  if (isMobile.value) return 40
+  return 30
+})
+
+const gridMargin = computed(() => {
+  if (isMobile.value) return [8, 8]
+  return [16, 16]
+})
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
 
 const defaultLayout = [
   {
@@ -122,6 +161,7 @@ const defaultLayout = [
 ]
 
 const layout = ref([])
+const showMobileMenu = ref(false)
 let widgetCounter = 10
 
 onMounted(() => {
@@ -232,6 +272,13 @@ const resetLayout = () => {
   layout.value = [...defaultLayout]
   localStorage.removeItem('dashboard-layout')
 }
+
+// Watch for layout changes (drag/resize) and save
+watch(layout, (newLayout) => {
+  if (newLayout.length > 0) {
+    saveLayout()
+  }
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -324,5 +371,83 @@ const resetLayout = () => {
   flex: 1;
   padding: 16px;
   overflow: auto;
+}
+
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* Mobile styles */
+@media (max-width: 767px) {
+  .dashboard-header {
+    padding: 12px 16px;
+    position: relative;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-actions.mobile-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #111111;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .header-actions.mobile-menu.show {
+    display: flex;
+  }
+
+  .header-actions.mobile-menu .add-btn,
+  .header-actions.mobile-menu .reset-btn {
+    width: 100%;
+    padding: 12px 16px;
+    text-align: center;
+  }
+
+  .dashboard-content {
+    padding: 8px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dashboard-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .add-btn, .reset-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .dashboard-content {
+    padding: 12px;
+  }
 }
 </style>

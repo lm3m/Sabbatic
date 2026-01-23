@@ -3,15 +3,24 @@
     <div class="card-container">
       <div
         class="strategy-card"
-        :style="cardStyle"
+        :class="{ 'flipped': isFlipped }"
+        :style="isFlipped ? cardStyle : {}"
+        @click="isFlipped ? null : drawCard()"
       >
-        <p class="strategy-text">{{ currentStrategy }}</p>
+        <p v-if="isFlipped" class="strategy-text">{{ currentStrategy }}</p>
+        <p v-else class="card-title">Oblique Strategies</p>
       </div>
-      <button @click="drawNewCard" class="draw-btn" title="Draw new card">
+      <button v-if="isFlipped" @click="drawNewCard" class="draw-btn" title="Draw new card">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
         </svg>
         <span>Draw New Card</span>
+      </button>
+      <button v-else @click="drawCard" class="draw-btn" title="Draw a card">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        <span>Draw A Card</span>
       </button>
     </div>
     <div class="attribution">
@@ -35,7 +44,8 @@ const props = defineProps({
 })
 
 const strategies = ref([])
-const currentStrategy = ref('Loading...')
+const currentStrategy = ref('')
+const isFlipped = ref(false)
 
 const fontFamily = computed(() => props.config.fontFamily || 'Georgia, serif')
 const fontColor = computed(() => props.config.fontColor || '#e0e0e0')
@@ -109,6 +119,13 @@ const selectStrategy = () => {
   currentStrategy.value = strategies.value[index]
 }
 
+const drawCard = () => {
+  if (strategies.value.length === 0) return
+
+  selectStrategy()
+  isFlipped.value = true
+}
+
 const drawNewCard = () => {
   if (strategies.value.length === 0) return
 
@@ -121,6 +138,7 @@ const drawNewCard = () => {
 
   setOverrideForToday(newIndex)
   currentStrategy.value = strategies.value[newIndex]
+  isFlipped.value = true
 }
 
 const loadStrategies = async () => {
@@ -134,9 +152,15 @@ const loadStrategies = async () => {
       .map(line => line.trim())
       .filter(line => line.length > 0 && line !== '[blank white card]')
 
-    selectStrategy()
+    // Check if there's an existing override for today - if so, show it flipped
+    const override = getOverrideForToday()
+    if (override !== null && override < strategies.value.length) {
+      currentStrategy.value = strategies.value[override]
+      isFlipped.value = true
+    }
   } catch (err) {
     currentStrategy.value = 'Failed to load strategies'
+    isFlipped.value = true
   }
 }
 
@@ -189,6 +213,27 @@ onMounted(() => {
   margin: 0;
   line-height: 1.5;
   text-align: center;
+}
+
+.card-title {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  font-size: 1.25rem;
+  font-style: italic;
+  color: #888;
+  text-align: center;
+}
+
+.strategy-card:not(.flipped) {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.strategy-card:not(.flipped):hover {
+  border-color: #4a4a4a;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .draw-btn {

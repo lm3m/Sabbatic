@@ -65,3 +65,26 @@ html, body, #app {
 ::-webkit-scrollbar-thumb:hover {
   background: #444;
 }
+
+/* Mobile-specific grid adjustments */
+@media (max-width: 767px) {
+  .vue-grid-item > .vue-resizable-handle {
+    display: none;
+  }
+
+  .vue-grid-layout {
+    min-height: auto !important;
+  }
+
+  .vue-grid-item {
+    touch-action: auto;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .vue-grid-item > .vue-resizable-handle {
+    width: 16px;
+    height: 16px;
+  }
+}

@@ -255,3 +255,27 @@ export const previousTrack = async (accessToken) => {
 
   return true
 }
+
+export const getQueue = async (accessToken) => {
+  const response = await fetch(`${SPOTIFY_API_URL}/me/player/queue`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  })
+
+  if (response.status === 204) {
+    return null
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      throw new Error('NO_ACTIVE_DEVICE')
+    }
+    throw new Error('Failed to fetch queue')
+  }
+
+  return response.json()
+}
