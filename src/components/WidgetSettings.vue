@@ -466,24 +466,32 @@ select.form-input {
 
 .checkbox-group {
   display: flex;
-  gap: 16px;
+  gap: 24px;
   flex-wrap: wrap;
 }
 
-.checkbox-label {
-  display: flex;
+.checkbox-group .checkbox-label {
+  display: flex !important;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
   font-size: 0.875rem;
   color: #ccc;
+  padding: 6px 8px;
+  margin-bottom: 0;
+  background-color: #222;
+  border: 1px solid #333;
+  border-radius: 6px;
 }
 
-.checkbox-input {
-  width: 16px;
-  height: 16px;
+.checkbox-group .checkbox-input {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
   accent-color: #1a73e8;
   cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .hint {

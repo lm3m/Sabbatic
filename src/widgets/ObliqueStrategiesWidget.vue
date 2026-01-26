@@ -4,7 +4,7 @@
       <div
         class="strategy-card"
         :class="{ 'flipped': isFlipped }"
-        :style="isFlipped ? cardStyle : {}"
+        :style="cardStyle"
         @click="isFlipped ? null : drawCard()"
       >
         <p v-if="isFlipped" class="strategy-text">{{ currentStrategy }}</p>
@@ -184,6 +184,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  position: relative;
 }
 
 .card-container {
@@ -191,7 +192,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  width: 100%;
+  max-width: 100%;
 }
 
 .strategy-card {
@@ -199,7 +200,7 @@ onMounted(() => {
   border: 1px solid #3a3a3a;
   border-radius: 12px;
   padding: 24px;
-  width: 100%;
+  max-width: 100%;
   min-height: 80px;
   display: flex;
   align-items: center;
@@ -217,10 +218,6 @@ onMounted(() => {
 
 .card-title {
   margin: 0;
-  font-family: 'Georgia', serif;
-  font-size: 1.25rem;
-  font-style: italic;
-  color: #888;
   text-align: center;
 }
 
@@ -261,8 +258,10 @@ onMounted(() => {
 }
 
 .attribution {
-  margin-top: auto;
-  padding-top: 12px;
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
   font-size: 0.625rem;
   color: #555;
   text-align: center;

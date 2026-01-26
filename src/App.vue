@@ -1,25 +1,24 @@
 <template>
   <div class="dashboard">
-    <header class="dashboard-header">
-      <h1>Widget Dashboard</h1>
-      <button class="menu-toggle" @click="showMobileMenu = !showMobileMenu" v-if="isMobile">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-      <div class="header-actions" :class="{ 'mobile-menu': isMobile, 'show': showMobileMenu }">
-        <button @click="addWidget('chart'); showMobileMenu = false" class="add-btn">+ Chart</button>
-        <button @click="addWidget('image'); showMobileMenu = false" class="add-btn">+ Image</button>
-        <button @click="addWidget('data'); showMobileMenu = false" class="add-btn">+ Data</button>
-        <button @click="addWidget('iframe'); showMobileMenu = false" class="add-btn">+ Embed</button>
-        <button @click="addWidget('spotify'); showMobileMenu = false" class="add-btn spotify-btn">+ Spotify</button>
-        <button @click="addWidget('datetime'); showMobileMenu = false" class="add-btn datetime-btn">+ Clock</button>
-        <button @click="addWidget('oblique'); showMobileMenu = false" class="add-btn oblique-btn">+ Oblique</button>
-        <button @click="resetLayout(); showMobileMenu = false" class="reset-btn">Reset Layout</button>
-      </div>
-    </header>
+    <button class="menu-toggle" @click="showMobileMenu = !showMobileMenu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <div v-if="showMobileMenu" class="menu-overlay" @click="showMobileMenu = false"></div>
+    <div class="menu-dropdown" :class="{ show: showMobileMenu }">
+      <button @click="addWidget('chart'); showMobileMenu = false" class="add-btn">+ Chart</button>
+      <button @click="addWidget('image'); showMobileMenu = false" class="add-btn">+ Image</button>
+      <button @click="addWidget('data'); showMobileMenu = false" class="add-btn">+ Data</button>
+      <button @click="addWidget('iframe'); showMobileMenu = false" class="add-btn">+ Embed</button>
+      <button @click="addWidget('spotify'); showMobileMenu = false" class="add-btn spotify-btn">+ Spotify</button>
+      <button @click="addWidget('datetime'); showMobileMenu = false" class="add-btn datetime-btn">+ Clock</button>
+      <button @click="addWidget('oblique'); showMobileMenu = false" class="add-btn oblique-btn">+ Oblique</button>
+      <div class="menu-divider"></div>
+      <button @click="resetLayout(); showMobileMenu = false" class="reset-btn">Reset Layout</button>
+    </div>
 
     <main class="dashboard-content">
       <grid-layout
@@ -288,26 +287,65 @@ watch(layout, (newLayout) => {
   background-color: #0a0a0a;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-.dashboard-header {
+.menu-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background-color: #111111;
-  border-bottom: 1px solid #2a2a2a;
+  justify-content: center;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.dashboard-header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #ffffff;
+.menu-toggle:hover {
+  background-color: #2a2a2a;
+  color: #fff;
+  border-color: #444;
 }
 
-.header-actions {
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 199;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  z-index: 201;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  min-width: 160px;
+}
+
+.menu-dropdown.show {
   display: flex;
-  gap: 8px;
+}
+
+.menu-divider {
+  height: 1px;
+  background-color: #333;
+  margin: 4px 0;
 }
 
 .add-btn, .reset-btn {
@@ -318,6 +356,7 @@ watch(layout, (newLayout) => {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: left;
 }
 
 .add-btn {
@@ -369,85 +408,21 @@ watch(layout, (newLayout) => {
 
 .dashboard-content {
   flex: 1;
-  padding: 16px;
+  padding: 16px 64px 16px 16px;
   overflow: auto;
-}
-
-.menu-toggle {
-  display: none;
-  background: transparent;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 8px;
 }
 
 /* Mobile styles */
 @media (max-width: 767px) {
-  .dashboard-header {
-    padding: 12px 16px;
-    position: relative;
-  }
-
-  .dashboard-header h1 {
-    font-size: 1.125rem;
-  }
-
-  .menu-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .header-actions.mobile-menu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: #111111;
-    border-bottom: 1px solid #2a2a2a;
-    padding: 12px 16px;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 100;
-  }
-
-  .header-actions.mobile-menu.show {
-    display: flex;
-  }
-
-  .header-actions.mobile-menu .add-btn,
-  .header-actions.mobile-menu .reset-btn {
-    width: 100%;
-    padding: 12px 16px;
-    text-align: center;
-  }
-
   .dashboard-content {
-    padding: 8px;
+    padding: 8px 56px 8px 8px;
   }
 }
 
 /* Tablet styles */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .dashboard-header {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .header-actions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .add-btn, .reset-btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-  }
-
   .dashboard-content {
-    padding: 12px;
+    padding: 12px 64px 12px 12px;
   }
 }
 </style>

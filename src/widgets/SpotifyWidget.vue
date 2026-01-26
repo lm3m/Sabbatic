@@ -732,9 +732,9 @@ h3 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   position: relative;
   padding: 12px;
+  min-height: 0;
 }
 
 .loading {
@@ -762,22 +762,25 @@ h3 {
   align-items: center;
   gap: 12px;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .album-art {
   position: relative;
-  width: min(50%, 200px);
   aspect-ratio: 1;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  flex-shrink: 0;
+  flex: 1 1 150px;
+  min-height: 80px;
+  max-width: 300px;
 }
 
 .album-art img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .playing-indicator,
@@ -831,6 +834,7 @@ h3 {
   text-align: center;
   width: 100%;
   padding: 0 8px;
+  flex-shrink: 0;
 }
 
 .track-name {
@@ -873,6 +877,7 @@ h3 {
   justify-content: center;
   gap: 8px;
   margin-top: 8px;
+  flex-shrink: 0;
 }
 
 .control-btn {
@@ -924,6 +929,7 @@ h3 {
   border-radius: 2px;
   overflow: hidden;
   margin-top: 8px;
+  flex-shrink: 0;
 }
 
 .progress {
@@ -939,6 +945,7 @@ h3 {
   width: 100%;
   font-size: 0.625rem;
   color: #666;
+  flex-shrink: 0;
 }
 
 .not-playing {
@@ -982,6 +989,12 @@ h3 {
   margin-top: 12px;
   border-top: 1px solid #333;
   padding-top: 8px;
+  flex: 0 1 auto;
+  min-height: 40px;
+  max-height: 150px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .queue-header {
@@ -991,14 +1004,16 @@ h3 {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .queue-list {
-  max-height: 150px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
+  min-height: 0;
 }
 
 .queue-item {
