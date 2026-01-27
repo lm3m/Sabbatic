@@ -44,7 +44,7 @@ export const saveToken = (tokenData) => {
   const token = {
     accessToken: tokenData.access_token,
     refreshToken: tokenData.refresh_token,
-    expiresAt: Date.now() + (tokenData.expires_in * 1000) - 60000 // 1 min buffer
+    expiresAt: Date.now() + tokenData.expires_in * 1000 - 60000 // 1 min buffer
   }
   localStorage.setItem(TOKEN_KEY, JSON.stringify(token))
   return token
@@ -73,7 +73,7 @@ export const exchangeCodeForToken = async (code, clientId, clientSecret, redirec
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': 'Basic ' + btoa(`${clientId}:${clientSecret}`)
+      Authorization: 'Basic ' + btoa(`${clientId}:${clientSecret}`)
     },
     body: new URLSearchParams({
       grant_type: 'authorization_code',
@@ -94,7 +94,7 @@ export const refreshAccessToken = async (refreshToken, clientId, clientSecret) =
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': 'Basic ' + btoa(`${clientId}:${clientSecret}`)
+      Authorization: 'Basic ' + btoa(`${clientId}:${clientSecret}`)
     },
     body: new URLSearchParams({
       grant_type: 'refresh_token',
@@ -117,7 +117,7 @@ export const refreshAccessToken = async (refreshToken, clientId, clientSecret) =
 export const getCurrentlyPlaying = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player/currently-playing`, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 
@@ -138,7 +138,7 @@ export const getCurrentlyPlaying = async (accessToken) => {
 export const getPlaybackState = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player`, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 
@@ -160,7 +160,7 @@ export const playTrack = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player/play`, {
     method: 'PUT',
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 
@@ -185,7 +185,7 @@ export const pauseTrack = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player/pause`, {
     method: 'PUT',
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 
@@ -210,7 +210,7 @@ export const nextTrack = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player/next`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 
@@ -235,7 +235,7 @@ export const previousTrack = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player/previous`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 
@@ -259,7 +259,7 @@ export const previousTrack = async (accessToken) => {
 export const getQueue = async (accessToken) => {
   const response = await fetch(`${SPOTIFY_API_URL}/me/player/queue`, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
   })
 

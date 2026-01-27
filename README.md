@@ -5,15 +5,16 @@ A customizable widget dashboard built with Vue 3, featuring draggable and resiza
 ## Features
 
 - **Draggable & Resizable Widgets**: Arrange your dashboard layout with drag-and-drop functionality
+- **Responsive Layout**: Adapts to mobile (2 col), tablet (6 col), and desktop (12 col) breakpoints
 - **Multiple Widget Types**:
   - **Chart**: Line, bar, doughnut, and pie charts with support for external data APIs
   - **Image**: Display images with optional auto-refresh
   - **Data**: Fetch and display JSON data from APIs
   - **Embed**: Embed external websites via iframe
-  - **Spotify**: View currently playing track with playback controls
+  - **Spotify**: Now playing with album art, playback controls, and up-next queue
   - **Clock**: LCD-style date/time display with customizable colors
-  - **Oblique Strategies**: Daily creative prompts with customizable typography
-- **Persistent Layout**: Dashboard configuration saved to localStorage
+  - **Oblique Strategies**: Flip-card creative prompts with customizable typography
+- **Persistent Layout**: Dashboard configuration saved to localStorage on every drag/resize
 - **Dark Theme**: Modern dark interface optimized for visibility
 
 ## Tech Stack
@@ -23,6 +24,8 @@ A customizable widget dashboard built with Vue 3, featuring draggable and resiza
 - **grid-layout-plus** for drag-and-drop grid system
 - **Chart.js** with vue-chartjs for data visualization
 - **Axios** for HTTP requests
+- **ESLint** with eslint-plugin-vue for linting
+- **Prettier** for code formatting
 
 ## Project Structure
 
@@ -73,7 +76,8 @@ public/
 #### Spotify Widget
 - OAuth 2.0 flow with authorization code grant
 - Credentials stored in localStorage (client-side only)
-- Automatic token refresh when expired
+- Proactive token refresh (scheduled 5 minutes before expiry)
+- Scrollable queue showing up-next tracks
 - Playback controls require Spotify Premium
 
 #### DateTime Widget
@@ -83,6 +87,7 @@ public/
 - ISO week number calculation
 
 #### Oblique Strategies Widget
+- Two-state flip card: unflipped (draw prompt) and flipped (strategy text)
 - Date-based deterministic card selection using hash function
 - "Draw new card" overrides cached in localStorage for the day
 - Customizable typography (font family, size, color, bold, italic, uppercase)
@@ -108,6 +113,14 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Lint
+npm run lint          # Check for issues
+npm run lint:fix      # Auto-fix issues
+
+# Format
+npm run format        # Format all files
+npm run format:check  # Check formatting
 ```
 
 The development server runs at `http://localhost:5173`
@@ -127,36 +140,26 @@ docker compose logs -f
 docker compose down
 ```
 
-The app will be available at `http://localhost:8080`
-
-### Manual Docker Build
-
-```bash
-# Build the image
-docker build -t sabbatic .
-
-# Run the container
-docker run -d -p 8080:80 --name sabbatic-dashboard sabbatic
-```
+The app is served via Traefik with automatic HTTPS (Let's Encrypt) at `https://jolukedi.synology.me:9443`. HTTP on port 8087 redirects to HTTPS.
 
 ### Docker Configuration
 
-The Docker setup uses a multi-stage build for optimal image size:
+The Docker setup uses:
 
-1. **Build stage**: Node.js Alpine image compiles the Vue application
-2. **Production stage**: Nginx Alpine serves the static files (~25MB final image)
+- **Traefik v3** as a reverse proxy with automatic Let's Encrypt TLS
+- **Multi-stage build** for optimal image size (~25MB final image)
+- **Nginx Alpine** to serve static files with gzip, cache headers, SPA routing, and security headers
+- **Health checks** on the Sabbatic container
 
-**Included optimizations**:
-- Gzip compression for faster loading
-- Cache headers for static assets (1 year for immutable files)
-- SPA routing (all routes serve index.html)
-- Security headers (X-Frame-Options, X-Content-Type-Options, etc.)
-- Health check endpoint
+| Port | Purpose |
+|------|---------|
+| 9443 | HTTPS (Traefik → Sabbatic) |
+| 8087 | HTTP (redirects to HTTPS) |
 
 ### Docker Files
 
 - `Dockerfile` - Multi-stage build configuration
-- `docker-compose.yml` - Simple deployment with health checks
+- `docker-compose.yml` - Traefik + Sabbatic deployment
 - `nginx.conf` - Production nginx configuration
 - `.dockerignore` - Excludes unnecessary files from build context
 
@@ -187,7 +190,7 @@ The Docker setup uses a multi-stage build for optimal image size:
    - Add default value initialization in `initSettings()`
 
 4. Add to `App.vue`:
-   - Add a button in the header
+   - Add a button in the hamburger menu dropdown
    - Add a case in `getDefaultConfig()`
 
 ## License
