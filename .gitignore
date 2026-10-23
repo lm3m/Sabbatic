@@ -37,3 +37,7 @@ coverage/
 
 # Vite
 *.local
+
+# traefik ACME storage (Let's Encrypt account + TLS private keys); backed up by
+# SearchDaemons/backup.sh, never committed.
+letsencrypt/
