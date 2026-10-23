@@ -6,7 +6,17 @@
       "Bash(npm run build:*)",
       "Bash(npx eslint:*)",
       "Bash(npx prettier:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(git -C /home/lukas/code/Sabbatic diff src/widgets/SpotifyWidget.vue)",
+      "Bash(sudo docker-compose *)",
+      "Bash(docker compose *)",
+      "Bash(docker version *)",
+      "Bash(apt-cache show *)",
+      "Bash(apt-cache search *)",
+      "Bash(sudo docker *)",
+      "Bash(openssl s_client -connect jolukedi.synology.me:9443 -servername jolukedi.synology.me)",
+      "Bash(openssl x509 *)",
+      "Bash(sudo ss -tlnp)"
     ]
   }
 }
