@@ -4,6 +4,7 @@ services:
     container_name: traefik
     command:
       - "--api.insecure=true"
+      - "--accesslog=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
